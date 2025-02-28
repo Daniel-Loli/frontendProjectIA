@@ -1,5 +1,8 @@
+// App.js
 import React, { useState } from "react";
 import AdminPanel from "./AdminPanel";
+
+const BASE_URL = "https://asistencia-ia-1.onrender.com";
 
 function App() {
   const [isLogged, setIsLogged] = useState(false);
@@ -13,11 +16,11 @@ function App() {
   const handleLogin = async () => {
     setMessage("");
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        credentials: "include",
+    
       });
       const data = await res.json();
       if (res.ok) {
@@ -36,7 +39,7 @@ function App() {
   const handleLogout = async () => {
     setMessage("");
     try {
-      const res = await fetch("http://localhost:5000/logout", {
+      const res = await fetch(`${BASE_URL}/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -64,7 +67,7 @@ function App() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const res = await fetch("http://localhost:5000/attendance", {
+          const res = await fetch(`${BASE_URL}/attendance`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ course, latitude, longitude }),
@@ -80,7 +83,6 @@ function App() {
     );
   };
 
-  // Si no está logueado, mostramos el formulario
   if (!isLogged) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center p-4">
@@ -128,10 +130,8 @@ function App() {
     );
   }
 
-  // Si está logueado (profesor o estudiante)
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex flex-col">
-      {/* Barra Superior */}
       <nav className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-xl md:text-2xl font-bold text-indigo-800">
@@ -145,17 +145,12 @@ function App() {
           </button>
         </div>
       </nav>
-
-      {/* Mensaje de estado (ej. "Login Exitoso") */}
       {message && (
         <div className="container mx-auto mt-4 px-4">
           <p className="text-center text-green-600 font-semibold">{message}</p>
         </div>
       )}
-
-      {/* Contenido Principal */}
       <div className="container mx-auto px-4 py-6 flex-1">
-        {/* Si es estudiante, mostramos botón para marcar asistencia */}
         {userType === "student" && (
           <div className="bg-white p-4 rounded shadow max-w-md mx-auto mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -178,11 +173,9 @@ function App() {
             </button>
           </div>
         )}
-
-        {/* Si es profesor, mostramos el Panel de Administración */}
         {userType === "teacher" && (
           <div className="bg-white p-4 md:p-6 rounded shadow-2xl">
-            <AdminPanel />
+            <AdminPanel baseUrl={BASE_URL} />
           </div>
         )}
       </div>

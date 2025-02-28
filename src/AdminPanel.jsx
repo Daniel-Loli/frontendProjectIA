@@ -1,3 +1,4 @@
+// AdminPanel.js
 import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 import {
@@ -10,38 +11,33 @@ import {
   Legend,
 } from "chart.js";
 
-// Registro de componentes para ChartJS
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function AdminPanel() {
-  // Estado para la navegación del panel
+export default function AdminPanel({ baseUrl }) {
   const [activeTab, setActiveTab] = useState("all"); // "all", "today", "filter"
-  // Para el filtro por fecha
   const [date, setDate] = useState("");
   const [report, setReport] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Estados para la edición de registros
   const [editStatus, setEditStatus] = useState("");
   const [showEditModal, setShowEditModal] = useState(false);
   const [targetAttendance, setTargetAttendance] = useState(null);
 
-  // Función para obtener el reporte según la pestaña activa
   const fetchReport = async () => {
     setErrorMsg("");
     setSuccessMsg("");
     setReport(null);
-    let url = "http://localhost:5000/admin/attendance"; // Registro general por defecto
+    let url = `${baseUrl}/admin/attendance`;
     if (activeTab === "today") {
       const today = new Date().toISOString().slice(0, 10);
-      url = `http://localhost:5000/admin/attendance?date=${today}`;
+      url = `${baseUrl}/admin/attendance?date=${today}`;
     } else if (activeTab === "filter") {
       if (!date) {
         setErrorMsg("Por favor seleccione una fecha.");
         return;
       }
-      url = `http://localhost:5000/admin/attendance?date=${date}`;
+      url = `${baseUrl}/admin/attendance?date=${date}`;
     }
     try {
       const res = await fetch(url, {
@@ -59,14 +55,12 @@ export default function AdminPanel() {
     }
   };
 
-  // Se ejecuta automáticamente si se selecciona "Registro General" o "Asistencia de Hoy"
   useEffect(() => {
     if (activeTab === "all" || activeTab === "today") {
       fetchReport();
     }
   }, [activeTab]);
 
-  // Funciones para abrir y actualizar el modal de edición
   const openEditModal = (attendance) => {
     setTargetAttendance(attendance);
     setEditStatus(attendance.status || "on_time");
@@ -86,7 +80,7 @@ export default function AdminPanel() {
       if (!targetAttendance.attendance_id) {
         body.student_code = targetAttendance.student_code;
       }
-      const res = await fetch("http://localhost:5000/admin/update_status", {
+      const res = await fetch(`${baseUrl}/admin/update_status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -105,7 +99,6 @@ export default function AdminPanel() {
     }
   };
 
-  // Función para renderizar las tablas de registros
   const renderTable = (title, data) => {
     return (
       <div className="mb-6">
@@ -177,7 +170,6 @@ export default function AdminPanel() {
     );
   };
 
-  // Configuración del gráfico
   const chartData = report
     ? {
         labels: ["Puntual", "Tarde", "Desde Afuera", "Faltó"],
@@ -223,8 +215,6 @@ export default function AdminPanel() {
       <h2 className="text-3xl font-bold text-center text-purple-800 mb-6">
         Panel de Administración
       </h2>
-
-      {/* Navegación con pestañas */}
       <div className="flex space-x-4 mb-6 justify-center">
         <button
           onClick={() => setActiveTab("all")}
@@ -257,8 +247,6 @@ export default function AdminPanel() {
           Filtrar por Día
         </button>
       </div>
-
-      {/* Si está en la pestaña de filtro se muestra el input y botón */}
       {activeTab === "filter" && (
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6 justify-center">
           <input
@@ -275,14 +263,12 @@ export default function AdminPanel() {
           </button>
         </div>
       )}
-
       {errorMsg && (
         <p className="text-red-600 text-center mb-4">{errorMsg}</p>
       )}
       {successMsg && (
         <p className="text-green-600 text-center mb-4">{successMsg}</p>
       )}
-
       {report && (
         <div>
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
@@ -292,11 +278,9 @@ export default function AdminPanel() {
               ? "Asistencia de Hoy"
               : `Reporte del ${date}`}
           </h3>
-
           <div className="mb-8 w-full h-80">
             <Bar data={chartData} options={chartOptions} />
           </div>
-
           {renderTable("Asistieron Puntual (on_time)", report.on_time)}
           {renderTable("Llegaron Tarde (late)", report.late)}
           {renderTable(
@@ -306,8 +290,6 @@ export default function AdminPanel() {
           {renderTable("Faltaron (absent)", report.absent)}
         </div>
       )}
-
-      {/* Modal para editar estado */}
       {showEditModal && targetAttendance && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-sm">
